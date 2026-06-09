@@ -39,14 +39,64 @@ function Dashboard() {
   }
 
   return (
-    <div>
-      <h1>Welcome to CalorieX Dashboard</h1>
-      <p>Goal Calories: {dashboard.goalCalories}</p>
-      <p>Total Calories: {dashboard.totalCalories}</p>
-      <p>Remaining Calories: {dashboard.remainingCalories}</p>
-      <p>Current Weight: {dashboard.currentWeight} kg</p>
-      <p>Weight Change: {dashboard.weightChange} kg</p>
-      <p>Meals Logged Today: {dashboard.mealsLoggedToday}</p>
+    <div className="container mt-5">
+      <h1 className="text-center mb-4">CalorieX Dashboard</h1>
+
+      <div className="row g-4">
+        <div className="col-md-4">
+          <div className="card text-center shadow">
+            <div className="card-body">
+              <h5 className="card-title">Goal Calories</h5>
+              <h2>{dashboard.goalCalories}</h2>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-md-4">
+          <div className="card text-center shadow">
+            <div className="card-body">
+              <h5 className="card-title">Total Calories</h5>
+              <h2>{dashboard.totalCalories}</h2>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-md-4">
+          <div className="card text-center shadow">
+            <div className="card-body">
+              <h5 className="card-title">Remaining Calories</h5>
+              <h2>{dashboard.remainingCalories}</h2>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-md-4">
+          <div className="card text-center shadow">
+            <div className="card-body">
+              <h5 className="card-title">Current Weight</h5>
+              <h2>{dashboard.currentWeight} kg</h2>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-md-4">
+          <div className="card text-center shadow">
+            <div className="card-body">
+              <h5 className="card-title">Weight Change</h5>
+              <h2>{dashboard.weightChange} kg</h2>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-md-4">
+          <div className="card text-center shadow">
+            <div className="card-body">
+              <h5 className="card-title">Meals Logged Today</h5>
+              <h2>{dashboard.mealsLoggedToday}</h2>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
