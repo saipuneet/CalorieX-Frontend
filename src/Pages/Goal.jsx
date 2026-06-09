@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
+import Navbar from "../Component/Navbar";
 
 function Goal() {
   const [goal, setGoal] = useState({
@@ -57,143 +58,146 @@ function Goal() {
   }
 
   return (
-    <div className="container mt-5">
-      <h1 className="text-center mb-4">CalorieX Goal</h1>
+    <>
+      <Navbar />
+      <div className="container mt-5">
+        <h1 className="text-center mb-4">CalorieX Goal</h1>
 
-      <div className="row g-4">
-        <div className="col-md-3">
-          <div className="card text-center shadow">
-            <div className="card-body">
-              <h5 className="card-title">Target Calories</h5>
-              <h2>{goal.targetCalories}</h2>
+        <div className="row g-4">
+          <div className="col-md-3">
+            <div className="card text-center shadow">
+              <div className="card-body">
+                <h5 className="card-title">Target Calories</h5>
+                <h2>{goal.targetCalories}</h2>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="col-md-3">
-          <div className="card text-center shadow">
-            <div className="card-body">
-              <h5 className="card-title">Target Protein</h5>
-              <h2>{goal.targetProtein} gr</h2>
+          <div className="col-md-3">
+            <div className="card text-center shadow">
+              <div className="card-body">
+                <h5 className="card-title">Target Protein</h5>
+                <h2>{goal.targetProtein} gr</h2>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="col-md-3">
-          <div className="card text-center shadow">
-            <div className="card-body">
-              <h5 className="card-title">Target Fats</h5>
-              <h2>{goal.targetFats} gr</h2>
+          <div className="col-md-3">
+            <div className="card text-center shadow">
+              <div className="card-body">
+                <h5 className="card-title">Target Fats</h5>
+                <h2>{goal.targetFats} gr</h2>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="col-md-3">
-          <div className="card text-center shadow">
-            <div className="card-body">
-              <h5 className="card-title">Target Carbs</h5>
-              <h2>{goal.targetCarbs} gr</h2>
+          <div className="col-md-3">
+            <div className="card text-center shadow">
+              <div className="card-body">
+                <h5 className="card-title">Target Carbs</h5>
+                <h2>{goal.targetCarbs} gr</h2>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="card shadow mt-4">
-          <div className="card-body">
-            <h3 className="text-center mb-4">Update Goal</h3>
+          <div className="card shadow mt-4">
+            <div className="card-body">
+              <h3 className="text-center mb-4">Update Goal</h3>
 
-            {/* Target Calories */}
-            <div className="row justify-content-center mb-3">
-              <div className="col-md-2 text-end">
-                <label className="form-label">Target Calories :</label>
+              {/* Target Calories */}
+              <div className="row justify-content-center mb-3">
+                <div className="col-md-2 text-end">
+                  <label className="form-label">Target Calories :</label>
+                </div>
+
+                <div className="col-md-2">
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={goal.targetCalories}
+                    onChange={(e) =>
+                      setGoal({
+                        ...goal,
+                        targetCalories: e.target.value,
+                      })
+                    }
+                  />
+                </div>
               </div>
 
-              <div className="col-md-2">
-                <input
-                  type="number"
-                  className="form-control"
-                  value={goal.targetCalories}
-                  onChange={(e) =>
-                    setGoal({
-                      ...goal,
-                      targetCalories: e.target.value,
-                    })
-                  }
-                />
-              </div>
-            </div>
+              {/* Target Protein */}
+              <div className="row justify-content-center mb-3">
+                <div className="col-md-2 text-end">
+                  <label className="form-label">Target Protein :</label>
+                </div>
 
-            {/* Target Protein */}
-            <div className="row justify-content-center mb-3">
-              <div className="col-md-2 text-end">
-                <label className="form-label">Target Protein :</label>
-              </div>
-
-              <div className="col-md-2">
-                <input
-                  type="number"
-                  className="form-control"
-                  value={goal.targetProtein}
-                  onChange={(e) =>
-                    setGoal({
-                      ...goal,
-                      targetProtein: e.target.value,
-                    })
-                  }
-                />
-              </div>
-            </div>
-
-            {/* Target Fats */}
-            <div className="row justify-content-center mb-3">
-              <div className="col-md-2 text-end">
-                <label className="form-label">Target Fats :</label>
+                <div className="col-md-2">
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={goal.targetProtein}
+                    onChange={(e) =>
+                      setGoal({
+                        ...goal,
+                        targetProtein: e.target.value,
+                      })
+                    }
+                  />
+                </div>
               </div>
 
-              <div className="col-md-2">
-                <input
-                  type="number"
-                  className="form-control"
-                  value={goal.targetFats}
-                  onChange={(e) =>
-                    setGoal({
-                      ...goal,
-                      targetFats: e.target.value,
-                    })
-                  }
-                />
-              </div>
-            </div>
+              {/* Target Fats */}
+              <div className="row justify-content-center mb-3">
+                <div className="col-md-2 text-end">
+                  <label className="form-label">Target Fats :</label>
+                </div>
 
-            {/* Target Carbs */}
-            <div className="row justify-content-center mb-4">
-              <div className="col-md-2 text-end">
-                <label className="form-label">Target Carbs :</label>
+                <div className="col-md-2">
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={goal.targetFats}
+                    onChange={(e) =>
+                      setGoal({
+                        ...goal,
+                        targetFats: e.target.value,
+                      })
+                    }
+                  />
+                </div>
               </div>
 
-              <div className="col-md-2">
-                <input
-                  type="number"
-                  className="form-control"
-                  value={goal.targetCarbs}
-                  onChange={(e) =>
-                    setGoal({
-                      ...goal,
-                      targetCarbs: e.target.value,
-                    })
-                  }
-                />
-              </div>
-            </div>
+              {/* Target Carbs */}
+              <div className="row justify-content-center mb-4">
+                <div className="col-md-2 text-end">
+                  <label className="form-label">Target Carbs :</label>
+                </div>
 
-            <div className="text-center">
-              <button className="btn btn-primary px-4" onClick={saveGoal}>
-                Save Goal
-              </button>
+                <div className="col-md-2">
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={goal.targetCarbs}
+                    onChange={(e) =>
+                      setGoal({
+                        ...goal,
+                        targetCarbs: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="text-center">
+                <button className="btn btn-primary px-4" onClick={saveGoal}>
+                  Save Goal
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
