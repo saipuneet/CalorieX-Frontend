@@ -1,19 +1,20 @@
 import axios from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Navbar from "../Component/Navbar";
+import { FaTrash } from "react-icons/fa";
 
 function Meals() {
-  const [query, setQuery] = useState("");
-  const [foods, SetFoods] = useState([]);
-  const [selectedFood, setSelectedFood] = useState(null);
-  const [mealType, setMealType] = useState("BREAKFAST");
-  const [amount, setAmount] = useState(20);
+  const [meals, setMeals] = useState([]);
+  const [mealTypeFilter, setMealTypeFilter] = useState("");
+  const [dateFilter, setDateFilter] = useState("");
 
-  async function searchFood() {
+  //fetch the meals from the backend when the component mounts
+  const fetchMeals = async () => {
     try {
       const token = localStorage.getItem("token");
+
       const response = await axios.get(
-        `http://localhost:8080/api/foods/search?query=${query}`,
+        "http://localhost:8080/api/meals/getMeal",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -21,139 +22,201 @@ function Meals() {
         },
       );
 
-      console.log(response.data);
-      SetFoods(response.data);
+      setMeals(response.data.meals);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    const loadMeals = async () => {
+      await fetchMeals();
+    };
+
+    void loadMeals();
+  }, []);
+
+  // function to get the badge color based on the meal type
+  function getMealBadgeColor(mealType) {
+    switch (mealType) {
+      case "BREAKFAST":
+        return "bg-warning text-dark";
+      case "LUNCH":
+        return "bg-primary";
+      case "DINNER":
+        return "bg-dark";
+
+      default:
+        return "bg-secondary";
+    }
+  }
+
+  //function to delete a meal
+
+  async function deleteMeal(mealId) {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(`http://localhost:8080/api/meals/${mealId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      fetchMeals();
     } catch (error) {
       console.error(error);
     }
   }
 
-  async function saveMeal() {
+  //create filter function according to meal type and date and both
+
+  async function applyFilter() {
     try {
       const token = localStorage.getItem("token");
+      let response;
 
-      const response = await axios.post(
-        "http://localhost:8080/api/meals/add-from-food",
-        {
-          foodId: selectedFood.id,
-          amount: amount,
-          mealType: mealType,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
+      //Mealtype + Date
+      if (mealTypeFilter && dateFilter) {
+        response = await axios.get(
+          `http://localhost:8080/api/meals/filter/mealtype-date?mealType=${mealTypeFilter}&date=${dateFilter}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           },
-        },
-      );
+        );
+      }
 
-      alert("Meal added successfully");
-      console.log(response.data);
-      setSelectedFood(null);
-    } catch (err) {
-      console.error(err);
-      alert("Failed to add Meal");
+      //only Meal type
+      else if (mealTypeFilter) {
+        response = await axios.get(
+          `http://localhost:8080/api/meals/filter?mealType=${mealTypeFilter}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+      }
+
+      //Only date
+      else if (dateFilter) {
+        response = await axios.get(
+          `http://localhost:8080/api/meals/filter/date?date=${dateFilter}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+      }
+
+      //No filters
+      else {
+        fetchMeals();
+        return;
+      }
+      setMeals(response.data.meals);
+      setMealTypeFilter("");
+      setDateFilter("");
+    } catch (error) {
+      console.error(error);
     }
   }
 
   return (
     <>
       <Navbar />
-      <div className="container mt-5">
-        <h1 className="text-center mb-4">Search Food</h1>
 
-        <div className="row justify-content-center mb-4">
-          <div className="col-md-4">
-            <input
-              type="text"
-              className="form-control"
-              placeholder="Search Food..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-          </div>
-
-          <div className="col-md-2">
-            <button className="btn btn-primary w-100" onClick={searchFood}>
-              Search
-            </button>
-          </div>
-        </div>
-        <div className="row">
-          {foods.map((food) => (
-            <div className="col-md-3 mb-3" key={food.id}>
-              <div className="card shadow h-100">
-                <img
-                  src={`https://img.spoonacular.com/ingredients_100x100/${food.image}`}
-                  className="card-img-top"
-                  alt={food.name}
-                  style={{
-                    height: "200px",
-                    objectFit: "contain",
-                  }}
-                />
-                <div className="card-body">
-                  <h5 className="card-title">{food.name}</h5>
-                </div>
-                <button
-                  className="btn btn-success"
-                  onClick={() => setSelectedFood(food)}
-                >
-                  Add To Meal
-                </button>
-              </div>
+      <div className="card shadow-sm mb-4">
+        <div className="card-body">
+          <div className="row align-items-end">
+            <div className="col-md-4">
+              <label className="form-label">Meal Type</label>
+              <select
+                className="form-select"
+                value={mealTypeFilter}
+                onChange={(e) => {
+                  setMealTypeFilter(e.target.value);
+                }}
+              >
+                <option value="">All Meals</option>
+                <option value="BREAKFAST">Breakfast</option>
+                <option value="LUNCH">Lunch</option>
+                <option value="DINNER">Dinner</option>
+              </select>
             </div>
-          ))}
+            <div className="col-md-4">
+              <label className="form-label">Date</label>
+              <input
+                type="date"
+                className="form-control"
+                value={dateFilter}
+                onChange={(e) => {
+                  setDateFilter(e.target.value);
+                }}
+              />
+            </div>
+            <div className="col-md-4">
+              <button className="btn btn-primary w-100" onClick={applyFilter}>
+                ApplyFilter
+              </button>
+            </div>
+          </div>
         </div>
-        {selectedFood && (
-          <div className="card shadow mt-4">
-            <div className="card-body">
-              <h3 className="text-center mb-4">
-                Add {selectedFood.name} To Meal
-              </h3>
-
-              <div className="row justify-content-center mb-3">
-                <div className="col-md-2 text-end">
-                  <label className="form-label">Meal Type :</label>
-                </div>
-
-                <div className="col-md-3">
-                  <select
-                    className="form-select"
-                    value={mealType}
-                    onChange={(e) => setMealType(e.target.value)}
-                  >
-                    <option value="BREAKFAST">Breakfast</option>
-
-                    <option value="LUNCH">Lunch</option>
-
-                    <option value="DINNER">Dinner</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="row justify-content-center mb-4">
-                <div className="col-md-2 text-end">
-                  <label className="form-label">Amount :</label>
-                </div>
-
-                <div className="col-md-3">
-                  <input
-                    type="number"
-                    className="form-control"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
+      </div>
+      <div className="row">
+        {meals.map((meal) => (
+          <div className="col-md-3 mb-3" key={meal.id}>
+            <div
+              className="card shadow-sm h-100 border-2"
+              style={{ borderRadius: "15px" }}
+            >
+              <div className="card-body p-3">
+                <div className="d-flex justify-content-between align-items-center mb-2">
+                  <h6 className="card-title">{meal.mealName}</h6>
+                  <FaTrash
+                    style={{ cursor: "pointer", color: "red" }}
+                    onClick={() => {
+                      if (
+                        window.confirm(
+                          `Are you sure you want to delete ${meal.mealName}?`,
+                        )
+                      ) {
+                        deleteMeal(meal.id);
+                      }
+                    }}
                   />
                 </div>
-              </div>
 
-              <div className="text-center">
-                <button className="btn btn-primary" onClick={saveMeal}>
-                  Save Meal
-                </button>
+                <span
+                  className={`badge ${getMealBadgeColor(meal.mealType)} mb-2`}
+                >
+                  {meal.mealType}
+                </span>
+
+                <h5 className="text-success fw-bold mb-2">
+                  {meal.calories} kcal
+                </h5>
+
+                <p className="mb-1">
+                  <strong>Protein:</strong> {meal.protein.toFixed(1)} g
+                </p>
+
+                <p className="mb-1">
+                  <strong>Carbs:</strong> {meal.carbs.toFixed(1)} g
+                </p>
+
+                <p className="mb-1">
+                  <strong>Fats:</strong> {meal.fats.toFixed(1)} g
+                </p>
+
+                <p className="mb-1">
+                  <strong>Date:</strong> {meal.date}
+                </p>
               </div>
             </div>
           </div>
-        )}
+        ))}
       </div>
     </>
   );
