@@ -1,17 +1,14 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import Navbar from "../Component/Navbar";
+import { useNavigate } from "react-router-dom";
 
 function Dashboard() {
   const [dashboard, setDashboard] = useState(null);
   const [error, setError] = useState("");
-  const [query, setQuery] = useState("");
-  const [foods, setFoods] = useState([]);
-  const [selectedFood, setSelectedFood] = useState(null);
-  const [mealType, setMealType] = useState("BREAKFAST");
-  const [amount, setAmount] = useState(5);
-  const [showModal, setShowModal] = useState(false);
+  const [recentMeals, setRecentMeals] = useState([]);
 
+  const navigate = useNavigate();
   // useeffect is used when the page loads the useefffect reload immediately.
   useEffect(() => {
     async function fetchDashboard() {
@@ -28,6 +25,17 @@ function Dashboard() {
         );
 
         setDashboard(response.data);
+
+        const recentMealsResponse = await axios.get(
+          "http://localhost:8080/api/meals/recent",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+        console.log(recentMealsResponse);
+        setRecentMeals(recentMealsResponse.data);
       } catch (err) {
         console.error(err);
         setError("Failed to load dashboard data");
@@ -37,58 +45,6 @@ function Dashboard() {
     fetchDashboard();
   }, []);
 
-  async function searchFood(searchText) {
-    console.log("Searching:", searchText);
-
-    try {
-      if (!searchText.trim()) {
-        setFoods([]);
-        return;
-      }
-      const token = localStorage.getItem("token");
-      console.log("Token:", token);
-
-      const response = await axios.get(
-        `http://localhost:8080/api/foods/search?query=${searchText}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-      console.log(response.data);
-      setFoods(response.data);
-    } catch (error) {
-      console.error(error);
-    }
-  }
-  async function saveMeal() {
-    try {
-      const token = localStorage.getItem("token");
-
-      const response = await axios.post(
-        "http://localhost:8080/api/meals/add-from-food",
-        {
-          foodId: selectedFood.id,
-          amount: amount,
-          mealType: mealType,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-
-      alert("Meal added successfully");
-      console.log(response.data);
-      setSelectedFood(null);
-    } catch (err) {
-      console.error(err);
-      alert("Failed to add Meal");
-    }
-  }
-
   if (error) {
     return <h2>{error}</h2>;
   }
@@ -97,177 +53,235 @@ function Dashboard() {
     return <h2>Loading...</h2>;
   }
 
-  return (
-    <>
-      <Navbar />
-      <h2 className="text-center mt-5">Search Food</h2>
-      <div className="container mt-5">
-        <div className="position-relative mx-auto" style={{ width: "550px" }}>
-          <input
-            type="text"
-            className={`form-control ${
-              foods.length > 0 && query.trim() !== ""
-                ? "rounded-top"
-                : "rounded-pill"
-            }`}
-            placeholder="Search Food..."
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              searchFood(e.target.value);
-            }}
-          />
+  function getBadgeColor(mealType) {
+    switch (mealType) {
+      case "BREAKFAST":
+        return "#0d6efd"; //blue
+      case "LUNCH":
+        return "#198754"; //green
+      case "DINNER":
+        return "#ffc107"; //yellow
 
-          {query.trim() !== "" && foods.length > 0 && (
+      default:
+        return "#212529";
+    }
+  }
+
+  return (
+    <div
+      style={{
+        backgroundColor: "#f0f4f8",
+        minHeight: "100vh",
+      }}
+    >
+      <Navbar />
+
+      <div className="container mt-5">
+        <div className="row g-4">
+          <div className="col-md-6">
             <div
-              className="list-group position-absolute w-100 shadow bg-white"
+              className="card shadow"
               style={{
-                zIndex: 1000,
-                top: "98%",
-                left: 0,
-                borderTop: "none",
-                borderRadius: "0 0 20px 20px",
+                height: "200px",
+                borderRadius: "20px",
+                border: "none",
               }}
             >
-              {foods.slice(0, 5).map((food) => (
-                <button
-                  key={food.id}
-                  type="button"
-                  className="list-group-item list-group-item-action text-start"
-                  onClick={() => {
-                    setSelectedFood(food);
-                    setQuery("");
-                    setFoods([]);
-                    setShowModal(true);
+              <div className="card-body p-4">
+                <h5 className="fw-bold mb-4">Today's Calories</h5>
+
+                <div className="d-flex justify-content-between">
+                  <h3 className="fw-bold text-center mb-2">
+                    {dashboard.totalCalories}
+                    <span className="text-muted">
+                      {" "}
+                      / {dashboard.goalCalories} kcal
+                    </span>
+                  </h3>
+
+                  <p className="mb-0">
+                    {dashboard.remainingCalories}
+                    <span className="text-muted"> kcal left</span>
+                  </p>
+                </div>
+
+                <div
+                  className="progress mt-4 "
+                  style={{
+                    height: "12px",
+                    borderRadius: "10px",
                   }}
                 >
-                  {food.name}
-                </button>
-              ))}
+                  <div
+                    className="progress-bar bg-danger"
+                    role="progressbar"
+                    style={{
+                      width: `${Math.min(
+                        (dashboard.totalCalories / dashboard.goalCalories) *
+                          100,
+                        100,
+                      )}%`,
+                    }}
+                  ></div>
+                </div>
+
+                <small className="text-muted d-block mt-2">
+                  {Math.round(
+                    (dashboard.totalCalories / dashboard.goalCalories) * 100,
+                  )}
+                  % completed
+                </small>
+              </div>
             </div>
-          )}
+          </div>
+          <div className="col-md-6">
+            {/* Macros Summary */}
+            <div
+              className="card shadow"
+              style={{
+                height: "270px",
+                borderRadius: "20px",
+                border: "none",
+              }}
+            >
+              <div className="card-body p-4">
+                <h5 className="fw-bold mb-4">Macros Summary</h5>
+                <div className="d-flex justify-content-between mb-2">
+                  <span>Protein</span>
+
+                  <span>
+                    {dashboard.proteinConsumed.toFixed(1)}g
+                    <span className="text-muted">
+                      {" "}
+                      / {dashboard.proteinGoal.toFixed(0)}g
+                    </span>
+                  </span>
+                </div>
+                <div
+                  className="progress mt-2 mb-3"
+                  style={{
+                    height: "10px",
+                    borderRadius: "10px",
+                  }}
+                >
+                  <div
+                    className="progress-bar bg-success"
+                    style={{
+                      width: `${Math.min((dashboard.proteinConsumed / dashboard.proteinGoal) * 100, 100)}%`,
+                    }}
+                  ></div>
+                </div>
+
+                {/*Fat */}
+
+                <div className="d-flex justify-content-between mb-2 mt-2">
+                  <span>Fats</span>
+
+                  <span>
+                    {dashboard.fatsConsumed.toFixed(1)}g
+                    <span className="text-muted">
+                      {" "}
+                      / {dashboard.fatsGoal.toFixed(0)}g
+                    </span>
+                  </span>
+                </div>
+                <div
+                  className="progress mt-2 mb-3"
+                  style={{
+                    height: "10px",
+                    borderRadius: "10px",
+                  }}
+                >
+                  <div
+                    className="progress-bar bg-warning"
+                    style={{
+                      width: `${Math.min((dashboard.fatsConsumed / dashboard.fatsGoal) * 100, 100)}%`,
+                    }}
+                  ></div>
+                </div>
+                <div className="d-flex justify-content-between mt-2 mb-2">
+                  <span>Carbs</span>
+                  <span>
+                    {dashboard.carbsConsumed.toFixed(1)}g{" "}
+                    <span className="text-muted">
+                      /{dashboard.carbsGoal.toFixed(0)}g
+                    </span>
+                  </span>
+                </div>
+                <div
+                  className="progress mt-2 mb-3"
+                  style={{
+                    height: "10px",
+                    borderRadius: "10px",
+                  }}
+                >
+                  <div
+                    className="progress-bar bg-primary"
+                    style={{
+                      width: `${Math.min((dashboard.carbsConsumed / dashboard.carbsGoal) * 100, 100)}%`,
+                    }}
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <h1 className="text-center mb-4">CalorieX Dashboard</h1>
-        <div className="row g-4">
-          <div className="col-md-4">
-            <div className="card text-center shadow">
-              <div className="card-body">
-                <h5 className="card-title">Goal Calories</h5>
-                <h2>{dashboard.goalCalories}</h2>
-              </div>
-            </div>
-          </div>
-
-          <div className="col-md-4">
-            <div className="card text-center shadow">
-              <div className="card-body">
-                <h5 className="card-title">Total Calories</h5>
-                <h2>{dashboard.totalCalories}</h2>
-              </div>
-            </div>
-          </div>
-
-          <div className="col-md-4">
-            <div className="card text-center shadow">
-              <div className="card-body">
-                <h5 className="card-title">Remaining Calories</h5>
-                <h2>{dashboard.remainingCalories}</h2>
-              </div>
-            </div>
-          </div>
-
-          <div className="col-md-4">
-            <div className="card text-center shadow">
-              <div className="card-body">
-                <h5 className="card-title">Current Weight</h5>
-                <h2>{dashboard.currentWeight} kg</h2>
-              </div>
-            </div>
-          </div>
-
-          <div className="col-md-4">
-            <div className="card text-center shadow">
-              <div className="card-body">
-                <h5 className="card-title">Weight Change</h5>
-                <h2>{dashboard.weightChange} kg</h2>
-              </div>
-            </div>
-          </div>
-
-          <div className="col-md-4">
-            <div className="card text-center shadow">
-              <div className="card-body">
-                <h5 className="card-title">Meals Logged Today</h5>
-                <h2>{dashboard.mealsLoggedToday}</h2>
+        <div>
+          {/*Recent Activity */}
+          <div className="row mt-2">
+            <div className="col-md-5">
+              <div className="card shadow mt-4">
+                <div
+                  className="card-body"
+                  style={{
+                    borderRadius: "20px",
+                    border: "none",
+                  }}
+                >
+                  <h5 className="fw-bold mb-3">Recent Activity</h5>
+                  {recentMeals.map((meal) => (
+                    <div
+                      key={meal.id}
+                      className="d-flex justify-content-between align-items-center border-bottom py-2"
+                    >
+                      <div className="d-flex align-items-center gap-2">
+                        <span
+                          style={{
+                            width: "10px",
+                            height: "10px",
+                            borderRadius: "50%",
+                            backgroundColor: getBadgeColor(meal.mealType),
+                            display: "inline-block",
+                          }}
+                        ></span>
+                        <span className="fw-medium">
+                          {meal.mealType.charAt(0) +
+                            meal.mealType.slice(1).toLowerCase()}
+                        </span>
+                      </div>
+                      <span className="fw-semibold">{meal.mealName}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="text-end mt-3 p-3">
+                  <span
+                    style={{
+                      cursor: "pointer",
+                      color: "#0d6efd",
+                      fontWeight: "600",
+                      borderRadius: "10px",
+                    }}
+                    onClick={() => navigate("/meals")}
+                  >
+                    View All Meals{" "}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-      {showModal && selectedFood && (
-        <div
-          className="modal d-block"
-          tabIndex="-1"
-          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
-        >
-          <div className="modal-dialog">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Add {selectedFood.name} To Meal</h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={() => setShowModal(false)}
-                ></button>
-              </div>
-              <div className="modal-body">
-                <div className="card bg-light mb-3">
-                  <div className="card-body">
-                    <h5>{selectedFood.name}</h5>
-                    <p className="mb-1">Calories: {selectedFood.calories}</p>
-                    <p className="mb-1">Protein: {selectedFood.protein}g</p>
-                    <p className="mb-1">Carbs: {selectedFood.carbs}g</p>
-                    <p className="mb-1">Fat: {selectedFood.fat}g</p>
-                  </div>
-                </div>
-                <div className="mb-3">
-                  <label className="form-label">Meal Type:</label>
-                  <select
-                    className="form-select"
-                    value={mealType}
-                    onChange={(e) => setMealType(e.target.value)}
-                  >
-                    <option value="BREAKFAST">Breakfast</option>
-                    <option value="LUNCH">Lunch</option>
-                    <option value="DINNER">Dinner</option>
-                  </select>
-                </div>
-                <div className="mb-3">
-                  <label className="form-label">Amount:</label>
-                  <input
-                    type="number"
-                    className="form-control"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                  />
-                </div>
-              </div>
-              <div className="modal-footer">
-                <button
-                  className="btn btn-secondary"
-                  onClick={() => setShowModal(false)}
-                >
-                  Close
-                </button>
-                <button className="btn btn-primary" onClick={saveMeal}>
-                  Save Meal
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
+    </div>
   );
 }
 
