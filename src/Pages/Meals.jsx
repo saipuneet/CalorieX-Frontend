@@ -2,6 +2,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import Navbar from "../Component/Navbar";
 import { FaTrash } from "react-icons/fa";
+import MealsNavbar from "../Component/MealsNavbar";
 
 function Meals() {
   const [meals, setMeals] = useState([]);
@@ -126,6 +127,7 @@ function Meals() {
   return (
     <>
       <Navbar />
+      <MealsNavbar />
 
       <div className="card shadow-sm mb-4">
         <div className="card-body">

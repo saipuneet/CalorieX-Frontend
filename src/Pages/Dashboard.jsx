@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import Navbar from "../Component/Navbar";
 import { useNavigate } from "react-router-dom";
+import { FaAppleAlt, FaClipboardList, FaFire } from "react-icons/fa";
 
 function Dashboard() {
   const [dashboard, setDashboard] = useState(null);
@@ -80,7 +81,7 @@ function Dashboard() {
         <div className="row g-4">
           <div className="col-md-6">
             <div
-              className="card shadow"
+              className="card shadow-sm dashboard-card"
               style={{
                 height: "200px",
                 borderRadius: "20px",
@@ -88,7 +89,10 @@ function Dashboard() {
               }}
             >
               <div className="card-body p-4">
-                <h5 className="fw-bold mb-4">Today's Calories</h5>
+                <h5 className="fw-bold mb-4 d-flex align-items-center">
+                  <FaFire className="text-danger me-2" />
+                  Today's Calories
+                </h5>
 
                 <div className="d-flex justify-content-between">
                   <h3 className="fw-bold text-center mb-2">
@@ -137,7 +141,7 @@ function Dashboard() {
           <div className="col-md-6">
             {/* Macros Summary */}
             <div
-              className="card shadow"
+              className="card shadow-sm dashboard-card"
               style={{
                 height: "270px",
                 borderRadius: "20px",
@@ -145,7 +149,10 @@ function Dashboard() {
               }}
             >
               <div className="card-body p-4">
-                <h5 className="fw-bold mb-4">Macros Summary</h5>
+                <h5 className="fw-bold mb-4 d-flex align-items-center">
+                  <FaAppleAlt className="text-success me-2" />
+                  Macros Summary
+                </h5>
                 <div className="d-flex justify-content-between mb-2">
                   <span>Protein</span>
 
@@ -230,7 +237,7 @@ function Dashboard() {
           {/*Recent Activity */}
           <div className="row mt-2">
             <div className="col-md-5">
-              <div className="card shadow mt-4">
+              <div className="card shadow mt-4 dashboard-card">
                 <div
                   className="card-body"
                   style={{
@@ -238,7 +245,10 @@ function Dashboard() {
                     border: "none",
                   }}
                 >
-                  <h5 className="fw-bold mb-3">Recent Activity</h5>
+                  <h5 className="fw-bold mb-3 d-flex align-items-center">
+                    <FaClipboardList className="text-primary me-2" />
+                    Recent Activity
+                  </h5>
                   {recentMeals.map((meal) => (
                     <div
                       key={meal.id}
