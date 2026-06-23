@@ -54,6 +54,7 @@ function MealsSearch() {
       console.log(response.data);
       alert("Meal Added successfully");
       setShowModal(false);
+      setQuantity(100);
     } catch (error) {
       console.error(error);
       alert("Failed to add meal");
@@ -134,6 +135,7 @@ function MealsSearch() {
                             className="search-item"
                             onClick={() => {
                               setSelectedFood(food);
+                              setQuantity(100);
                               setShowModal(true);
                               fetchFoodDetals(food.id, 100);
                             }}
@@ -186,7 +188,10 @@ function MealsSearch() {
                 </h5>
                 <button
                   className="btn-close"
-                  onClick={() => setShowModal(false)}
+                  onClick={() => {
+                    setShowModal(false);
+                    setQuantity(100);
+                  }}
                 ></button>
               </div>
 
