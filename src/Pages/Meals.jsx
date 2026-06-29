@@ -1,13 +1,26 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import Navbar from "../Component/Navbar";
-import { FaTrash } from "react-icons/fa";
+import { FaEdit, FaTrash } from "react-icons/fa";
 import MealsNavbar from "../Component/MealsNavbar";
 
 function Meals() {
   const [meals, setMeals] = useState([]);
   const [mealTypeFilter, setMealTypeFilter] = useState("");
   const [dateFilter, setDateFilter] = useState("");
+  const [selectedMeal, setSelectedMeal] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editQuantity, setEditQuantity] = useState("");
+
+  const [editMealType, setEditMealType] = useState("");
+
+  const [editCalories, setEditCalories] = useState(0);
+
+  const [editProtein, setEditProtein] = useState(0);
+
+  const [editCarbs, setEditCarbs] = useState(0);
+
+  const [editFats, setEditFats] = useState(0);
 
   //fetch the meals from the backend when the component mounts
   const fetchMeals = async () => {
@@ -124,6 +137,70 @@ function Meals() {
     }
   }
 
+  const handleQuantityChange = async (e) => {
+    const value = e.target.value;
+
+    setEditQuantity(value);
+
+    if (value === "") {
+      return;
+    }
+
+    const quantity = Number(value);
+
+    if (quantity <= 0) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await axios.get(
+        `http://localhost:8080/api/foods/${selectedMeal.foodId}?amount=${value}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      setEditCalories(response.data.calories);
+      setEditProtein(response.data.protein);
+      setEditCarbs(response.data.carbs);
+      setEditFats(response.data.fat);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const updateMeal = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const request = {
+        quantity: Number(editQuantity),
+        mealType: editMealType,
+      };
+
+      const response = await axios.put(
+        `http://localhost:8080/api/meals/${selectedMeal.id}`,
+        request,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      alert(response.data);
+      setShowEditModal(false);
+      fetchMeals();
+    } catch (error) {
+      console.error(error);
+      alert("Unable to update the meal");
+    }
+  };
+
   return (
     <>
       <Navbar />
@@ -166,6 +243,90 @@ function Meals() {
           </div>
         </div>
       </div>
+      {showEditModal && (
+        <div
+          className="modal fade show d-block"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+        >
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Edit Meal</h5>
+
+                <button
+                  className="btn-close"
+                  onClick={() => setShowEditModal(false)}
+                ></button>
+              </div>
+
+              <div className="modal-body">
+                <div className="mb-3">
+                  <label className="form-label">Meal Name</label>
+
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={selectedMeal?.mealName || ""}
+                    readOnly
+                  />
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label">Quantity (g)</label>
+
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={editQuantity}
+                    onChange={handleQuantityChange}
+                  />
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label">Meal Type</label>
+
+                  <select
+                    className="form-select"
+                    value={editMealType}
+                    onChange={(e) => setEditMealType(e.target.value)}
+                  >
+                    <option value="BREAKFAST">Breakfast</option>
+                    <option value="LUNCH">Lunch</option>
+                    <option value="DINNER">Dinner</option>
+                  </select>
+                </div>
+
+                <div className="card bg-light">
+                  <div className="card-body">
+                    <h6>Nutrition</h6>
+
+                    <p>Calories : {editCalories.toFixed(1)}</p>
+
+                    <p>Protein : {editProtein.toFixed(1)} g</p>
+
+                    <p>Carbs : {editCarbs.toFixed(1)} g</p>
+
+                    <p>Fats : {editFats.toFixed(1)} g</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => setShowEditModal(false)}
+                >
+                  Cancel
+                </button>
+
+                <button className="btn btn-primary" onClick={updateMeal}>
+                  Update Meal
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="row">
         {meals.map((meal) => (
           <div className="col-md-3 mb-3" key={meal.id}>
@@ -176,18 +337,41 @@ function Meals() {
               <div className="card-body p-3">
                 <div className="d-flex justify-content-between align-items-center mb-2">
                   <h6 className="card-title">{meal.mealName}</h6>
-                  <FaTrash
-                    style={{ cursor: "pointer", color: "red" }}
-                    onClick={() => {
-                      if (
-                        window.confirm(
-                          `Are you sure you want to delete ${meal.mealName}?`,
-                        )
-                      ) {
-                        deleteMeal(meal.id);
-                      }
-                    }}
-                  />
+                  <div className="d-flex gap-3">
+                    <FaEdit
+                      style={{
+                        cursor: "pointer",
+                        color: "blue",
+                      }}
+                      onClick={() => {
+                        setSelectedMeal(meal);
+                        setEditQuantity(meal.quantity);
+
+                        setEditMealType(meal.mealType);
+
+                        setEditCalories(meal.calories);
+
+                        setEditProtein(meal.protein);
+
+                        setEditCarbs(meal.carbs);
+
+                        setEditFats(meal.fats);
+                        setShowEditModal(true);
+                      }}
+                    />
+                    <FaTrash
+                      style={{ cursor: "pointer", color: "red" }}
+                      onClick={() => {
+                        if (
+                          window.confirm(
+                            `Are you sure you want to delete ${meal.mealName}?`,
+                          )
+                        ) {
+                          deleteMeal(meal.id);
+                        }
+                      }}
+                    />
+                  </div>
                 </div>
 
                 <span

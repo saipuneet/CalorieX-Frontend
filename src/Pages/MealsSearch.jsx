@@ -35,10 +35,13 @@ function MealsSearch() {
   const addMeal = async () => {
     try {
       const token = localStorage.getItem("token");
+      console.log("Selected Food:", selectedFood);
+      console.log("Selected Food Unit:", selectedFood.unit);
       const request = {
         foodId: selectedFood.id,
         amount: Number(quantity),
         mealType: mealType,
+        unit: selectedFood.unit,
       };
 
       const response = await axios.post(
